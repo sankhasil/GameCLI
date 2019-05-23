@@ -101,7 +101,7 @@ public class Hero extends Character implements Serializable {
 	@Override
 	public String toString() {
 		return "Hero, level=" + level + ", weapon=" + weapon.getType().getValue().toUpperCase() + ", Name="
-				+ super.getName() + ", Inventory=" + inventory.toString() + "]";
+				+ super.getName() + ", Inventory=" + inventory.toString() + ", HP="+getHealth()+"]";
 	}
 
 }

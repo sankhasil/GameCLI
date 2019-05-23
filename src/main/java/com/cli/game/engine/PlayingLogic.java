@@ -38,6 +38,7 @@ import com.cli.game.model.base.Potion;
 import com.cli.game.model.base.SpecialPower;
 import com.cli.game.model.base.Weapon;
 import com.cli.game.model.extended.Hero;
+import com.cli.game.model.extended.Soldier;
 import com.cli.game.model.extended.Zombie;
 
 /**
@@ -77,9 +78,9 @@ public class PlayingLogic {
 							System.out.println(
 									"Do You want to Load previously Saved Game..Press\n\t L. To Load\n\t C. To Create New.");
 							String input = scan.nextLine();
-							if(input.equalsIgnoreCase("l")) {
+							if (input.equalsIgnoreCase("l")) {
 								loadLastSavedGame();
-							}else if(input.equalsIgnoreCase("c")) {
+							} else if (input.equalsIgnoreCase("c")) {
 								StorySimulator.getInstance().getSoloAdventureSimulation();
 								boolean heroChoice = true;
 								while (heroChoice) {
@@ -105,7 +106,6 @@ public class PlayingLogic {
 								}
 							}
 						}
-						// FIXME: work on this methods
 						StorySimulator.getInstance().gameCommands();
 						boolean gameChoice = true;
 						while (gameChoice) {
@@ -147,108 +147,73 @@ public class PlayingLogic {
 		String command = scan.nextLine().toLowerCase();
 		switch (command) {
 		case "1":
-			gameProgress();
+			if (StorySimulator.getInstance().isInBattle()) {
+				System.out.println("You are in battle with enemy...Can't choose this option.");
+			} else {
+				gameProgress();
+			}
+			break;
+		case "2":
+			if (StorySimulator.getInstance().isInBattle()) {
+				System.out.println("You are in battle with enemy...Can't choose this option.");
+			} else {
+				System.out.println(StorySimulator.getInstance().getHero().toString());
+				System.out.println("What you want to do now?");
+				StorySimulator.getInstance().gameCommands();
+			}
 			break;
 		case "a":
 			// Getting Hero and enemy information
-			StorySimulator.getInstance().setInBattle(true);
-			Enemy selectedEnemy = StorySimulator.getInstance().getCurrentEnemy();
-			Hero selectedHero = StorySimulator.getInstance().getHero();
-			int heroStrikeAmount = random
-					.nextInt(selectedHero.getAttackDamage() + selectedHero.getWeapon().getHitDamage());
-			int enemyStrikeAmount = random.nextInt(selectedEnemy.getAttackDamage());
-			int heroHealth = selectedHero.getHealth() + selectedHero.getArmor().getHitProtection();
-			// health check process
-			if (heroHealth > selectedEnemy.getHealth()) {
-				System.out.println(selectedHero.getName() + " Hero hits " + heroStrikeAmount);
-				selectedEnemy.setHealth(selectedEnemy.getHealth() - heroStrikeAmount);
-				// No damage if godmode
-				if (!godMode) {
-					if (selectedHero.getArmor().getHitProtection() > 0) {
-						int armorDeduction = selectedHero.getArmor().getHitProtection() - enemyStrikeAmount;
-						if(armorDeduction > -1)
-						selectedHero.getArmor()
-								.setHitProtection(armorDeduction);
-						else {
-							selectedHero.setHealth(selectedHero.getHealth() + armorDeduction);
+			if (StorySimulator.getInstance().getCurrentEnemy() != null) {
+				StorySimulator.getInstance().setInBattle(true);
+				Enemy selectedEnemy = StorySimulator.getInstance().getCurrentEnemy();
+				Hero selectedHero = StorySimulator.getInstance().getHero();
+				int heroStrikeAmount = random
+						.nextInt(selectedHero.getAttackDamage() + selectedHero.getWeapon().getHitDamage());
+				int enemyStrikeAmount = random.nextInt(selectedEnemy.getAttackDamage());
+				int heroHealth = selectedHero.getHealth() + selectedHero.getArmor().getHitProtection();
+				// health check process
+				if (heroHealth > selectedEnemy.getHealth()) {
+					System.out.println(selectedHero.getName() + " Hero hits " + heroStrikeAmount);
+					selectedEnemy.setHealth(selectedEnemy.getHealth() - heroStrikeAmount);
+					// No damage if godmode
+					if (!godMode) {
+						if (selectedHero.getArmor().getHitProtection() > 0) {
+							int armorDeduction = selectedHero.getArmor().getHitProtection() - enemyStrikeAmount;
+							if (armorDeduction > -1)
+								selectedHero.getArmor().setHitProtection(armorDeduction);
+							else {
+								selectedHero.setHealth(selectedHero.getHealth() + armorDeduction);
+							}
+						} else {
+							selectedHero.setHealth(selectedHero.getHealth() - enemyStrikeAmount);
 						}
-					} else {
-						selectedHero.setHealth(selectedHero.getHealth() - enemyStrikeAmount);
-					}
-				}
-			} else {
-				System.out.println("\t You are too weak to continue!!");
-			}
-			// After battle result
-			if (selectedEnemy.getHealth() < 1) {
-				System.out.println(
-						"You have deafeted the Enemy !! Cleared " + StorySimulator.getInstance().getFloor() + " Stage");
-				StorySimulator.getInstance().setFloor(StorySimulator.getInstance().getFloor() + 1);
-				StorySimulator.getInstance().setInBattle(false);
-				// Gain Exp and level up
-				if (selectedHero.getLevel() < 200) {
-					selectedHero.setLevel((short) (selectedHero.getLevel() + 1));
-					System.out.println("You have gained Experience !!");
-					if (selectedHero.getLevel() % 5 == 0) {
-						selectedHero.setHealth(selectedHero.getHealth() + 1);
-						selectedHero.setAttackDamage(selectedHero.getAttackDamage() + 1);
-						System.out.println("Your Health is increased: "+selectedHero.getHealth());
-						System.out.println("Your Attack Damage is increased: "+selectedHero.getAttackDamage());
-						
 					}
 				} else {
-					System.out.println("You have already reached Max Level!!!");
+					System.out.println("\t You are too weak to continue!!");
 				}
-				// Loot chance
-				if (random.nextInt(100) < selectedEnemy.getLootDropChance()) {
-					if (random.nextInt(100) < 10) {
-						Weapon newWeapon = new Weapon(20, WeaponType.MACE);
-						selectedHero.getInventory().addWeaponToInventory(newWeapon);
-						System.out.println(
-								"You have looted " + newWeapon.toString() + " is added to your Inventory.");
-					}
-					if (random.nextInt(100) < 30) {
-						Weapon newWeapon = new Weapon(20, WeaponType.SWORD);
-						selectedHero.getInventory().addWeaponToInventory(newWeapon);
-						System.out.println(
-								"You have looted " + newWeapon.toString() + " is added to your Inventory.");
-					}
-					if (random.nextInt(100) < 50) {
-						Potion newPotion = new Potion(15, PotionType.HEALTH);
-						selectedHero.getInventory().addPotionToInventory(newPotion);
-						System.out.println(
-								"You have looted " + newPotion.toString() + " is added to your Inventory.");
-					}
-					if (random.nextInt(100) < 40) {
-						Potion newPotion = new Potion(15, PotionType.MANNA);
-						selectedHero.getInventory().addPotionToInventory(newPotion);
-						System.out.println(
-								"You have looted " + newPotion.toString() + " is added to your Inventory.");
-					}
-					if (random.nextInt(100) < 20) {
-						Armor newArmor = new Armor(20);
-						selectedHero.getInventory().addArmorToInventory(newArmor);
-						System.out.println(
-								"You have looted " + newArmor.toString() + " is added to your Inventory.");
-					}
-				}
-				// Remove enemy from story list
-				StorySimulator.getInstance().getEnemyList().remove(selectedEnemy);
-				System.out.println("Player Status " + selectedHero.toString());
-				System.out.println("\tDo you want to continue...(yes/no)");
+				// After battle result
+				afterBattleAction(selectedEnemy, selectedHero);
 			} else {
-				StorySimulator.getInstance().playerStatus();
-				renderPlayerActions();
+				System.out.println("You are in battle with enemy...Can't choose this option.");
 			}
 			break;
 		case "yes":
 		case "y":
-			gameProgress();
+			if (StorySimulator.getInstance().getCurrentEnemy() != null && StorySimulator.getInstance().isInBattle()) {
+				System.out.println("You are in battle with enemy...Can't choose this option.");
+			} else {
+				gameProgress();
+			}
 			break;
 		case "no":
 		case "n":
-			System.out.println("\tYou are out of the dungeon..");
-			StorySimulator.getInstance().gameCommands();
+			if (StorySimulator.getInstance().getCurrentEnemy() != null && StorySimulator.getInstance().isInBattle()) {
+				System.out.println("You are in battle with enemy...Can't choose this option.");
+			} else {
+				System.out.println("\tYou are out of the dungeon..");
+				StorySimulator.getInstance().gameCommands();
+			}
 			break;
 		case "b":
 			if (StorySimulator.getInstance().isInBattle()) {
@@ -272,50 +237,163 @@ public class PlayingLogic {
 			}
 			break;
 		case "c":
-			if(StorySimulator.getInstance().isInBattle()) {
-				List<SpecialPower> selectedHeroSpecialPowerList = StorySimulator.getInstance().getHero().getSpecialPowerList();
-				if(selectedHeroSpecialPowerList.size()>1) {
+			if (StorySimulator.getInstance().isInBattle()) {
+				List<SpecialPower> selectedHeroSpecialPowerList = StorySimulator.getInstance().getHero()
+						.getSpecialPowerList();
+				if (selectedHeroSpecialPowerList.size() > 1) {
 					System.out.println("Choose Power... ");
-					for (SpecialPower specialPower : selectedHeroSpecialPowerList) 
-						System.out.println("# "+specialPower.getType().getValue().toUpperCase().charAt(0) +"."+ specialPower.getType().getValue().toUpperCase()+ " - "+specialPower.getAmount());
-				}else if(selectedHeroSpecialPowerList.size() == 1) {
-					System.out.println("You have only one power... "+selectedHeroSpecialPowerList.get(0).getType().getValue().toUpperCase());
-					if(StorySimulator.getInstance().getCurrentEnemy() instanceof Zombie) {
+					for (SpecialPower specialPower : selectedHeroSpecialPowerList)
+						System.out.println("# " + specialPower.getType().getValue().toUpperCase().charAt(0) + "."
+								+ specialPower.getType().getValue().toUpperCase() + " - " + specialPower.getAmount());
+				} else if (selectedHeroSpecialPowerList.size() == 1) {
+					System.out.println("You have only one power... "
+							+ selectedHeroSpecialPowerList.get(0).getType().getValue().toUpperCase());
+					if (StorySimulator.getInstance().getCurrentEnemy() instanceof Zombie) {
 						System.out.println("Using it on Zombie..");
-					}else {
+					} else {
 						System.out.println("Using it on Enemy..");
 					}
-					//FIXME: use special power.
+					// FIXME: use special power.
+					int specialPowerHitDamage = selectedHeroSpecialPowerList.get(0).getAmount();
+					StorySimulator.getInstance().getCurrentEnemy().setHealth(
+							StorySimulator.getInstance().getCurrentEnemy().getHealth() - specialPowerHitDamage);
+					afterBattleAction(StorySimulator.getInstance().getCurrentEnemy(),
+							StorySimulator.getInstance().getHero());
+
 				}
+			} else {
+				System.out.println("You can't use Special Power.. You are not in Battle");
 			}
 			break;
-			
+
 		case "f":
-			if(StorySimulator.getInstance().isInBattle()) {
+			if (StorySimulator.getInstance().isInBattle()) {
 				System.out.println("You used Fire...Let it burn");
-				
+				StorySimulator.getInstance().getCurrentEnemy()
+						.setHealth(StorySimulator.getInstance().getCurrentEnemy().getHealth() - 30);
+				afterBattleAction(StorySimulator.getInstance().getCurrentEnemy(),
+						StorySimulator.getInstance().getHero());
+
+			} else {
+				System.out.println("You can't use Special Power.. You are not in Battle");
 			}
 			break;
 		case "t":
-			if(StorySimulator.getInstance().isInBattle()) {
-				
+			if (StorySimulator.getInstance().isInBattle()) {
+				System.out.println("You used Thunder...Electrify");
+				StorySimulator.getInstance().getCurrentEnemy()
+						.setHealth(StorySimulator.getInstance().getCurrentEnemy().getHealth() - 22);
+				afterBattleAction(StorySimulator.getInstance().getCurrentEnemy(),
+						StorySimulator.getInstance().getHero());
+			} else {
+				System.out.println("You can't use Special Power.. You are not in Battle");
 			}
 			break;
 		case "r":
-			if(StorySimulator.getInstance().isInBattle()) {
-				
+			if (StorySimulator.getInstance().isInBattle()) {
+				System.out.println("You used Rage Kill...Let it Bleed");
+				StorySimulator.getInstance().getCurrentEnemy()
+						.setHealth(StorySimulator.getInstance().getCurrentEnemy().getHealth() - 25);
+				afterBattleAction(StorySimulator.getInstance().getCurrentEnemy(),
+						StorySimulator.getInstance().getHero());
+			} else {
+				System.out.println("You can't use Special Power.. You are not in Battle");
 			}
+			break;
+		case "d":
+			// TODO: put run away logic
+			if (StorySimulator.getInstance().getCurrentEnemy() != null) {
+				System.out.println("You Run away from enemy. You are back to previous stage.");
+				StorySimulator.getInstance().setInBattle(false);
+				StorySimulator.getInstance().setCurrentEnemy(null);
+				StorySimulator.getInstance().gameCommands();
+			}else {
+				System.out.println("You can't Run away from enemy.. You are not in Battle");
+		}
 			break;
 		case "3":
 			// saveLogic
+			if (StorySimulator.getInstance().getCurrentEnemy() != null) {
+				System.out.println("You are in Battle ... You can");
+			}else {
 			saveGame();
+			}
 			break;
 		case "4":
-			System.out.println("!!!!Thank you for Playing!!!!!");
-			System.exit(0);
+			if (StorySimulator.getInstance().getCurrentEnemy() != null) {
+				System.out.println("You can't Exit now...Enemy is infront of you..");
+				renderPlayerActions();
+			} else {
+				System.out.println("!!!!Thank you for Playing!!!!!");
+				System.exit(0);
+			}
 			break;
 		default:
 			throw new GameCommandNotSupportedException(command + " is not Supported..");
+		}
+	}
+
+	/**
+	 * 
+	 * @param selectedEnemy
+	 * @param selectedHero
+	 */
+	private void afterBattleAction(Enemy selectedEnemy, Hero selectedHero) {
+		if (selectedEnemy.getHealth() < 1) {
+			System.out.println(
+					"You have deafeted the Enemy !! Cleared " + StorySimulator.getInstance().getFloor() + " Stage");
+			StorySimulator.getInstance().setFloor(StorySimulator.getInstance().getFloor() + 1);
+			StorySimulator.getInstance().setInBattle(false);
+			// Gain Exp and level up
+			if (selectedHero.getLevel() < 200) {
+				selectedHero.setLevel((short) (selectedHero.getLevel() + 1));
+				System.out.println("You have gained Experience !!");
+				if (selectedHero.getLevel() % 5 == 0) {
+					selectedHero.setHealth(selectedHero.getHealth() + 1);
+					selectedHero.setAttackDamage(selectedHero.getAttackDamage() + 1);
+					System.out.println("Your Health is increased: " + selectedHero.getHealth());
+					System.out.println("Your Attack Damage is increased: " + selectedHero.getAttackDamage());
+
+				}
+			} else {
+				System.out.println("You have already reached Max Level!!!");
+			}
+			// Loot chance
+			if (random.nextInt(100) < selectedEnemy.getLootDropChance()) {
+				if (random.nextInt(100) < 10) {
+					Weapon newWeapon = new Weapon(20, WeaponType.MACE);
+					selectedHero.getInventory().addWeaponToInventory(newWeapon);
+					System.out.println("You have looted " + newWeapon.toString() + " is added to your Inventory.");
+				}
+				if (random.nextInt(100) < 30) {
+					Weapon newWeapon = new Weapon(20, WeaponType.SWORD);
+					selectedHero.getInventory().addWeaponToInventory(newWeapon);
+					System.out.println("You have looted " + newWeapon.toString() + " is added to your Inventory.");
+				}
+				if (random.nextInt(100) < 50) {
+					Potion newPotion = new Potion(15, PotionType.HEALTH);
+					selectedHero.getInventory().addPotionToInventory(newPotion);
+					System.out.println("You have looted " + newPotion.toString() + " is added to your Inventory.");
+				}
+				if (random.nextInt(100) < 40) {
+					Potion newPotion = new Potion(15, PotionType.MANNA);
+					selectedHero.getInventory().addPotionToInventory(newPotion);
+					System.out.println("You have looted " + newPotion.toString() + " is added to your Inventory.");
+				}
+				if (random.nextInt(100) < 20) {
+					Armor newArmor = new Armor(20);
+					selectedHero.getInventory().addArmorToInventory(newArmor);
+					System.out.println("You have looted " + newArmor.toString() + " is added to your Inventory.");
+				}
+			}
+			// Remove enemy from story list
+			StorySimulator.getInstance().getEnemyList().remove(selectedEnemy);
+			StorySimulator.getInstance().setCurrentEnemy(null);
+			System.out.println("Player Status " + selectedHero.toString());
+			System.out.println("\tDo you want to continue...(yes/no)");
+		} else {
+			StorySimulator.getInstance().playerStatus();
+			renderPlayerActions();
 		}
 	}
 
@@ -390,6 +468,7 @@ public class PlayingLogic {
 				throw new GenderNotSupportedException(genderInString + " Not supported!!");
 			}
 			Inventory inventory = new Inventory();
+			inventory.addPotionToInventory(new Potion(10, PotionType.HEALTH));
 			StringBuilder specialPowerBuilder = new StringBuilder();
 			specialPowerBuilder.append("\tPlease choose your Special Power:");
 			specialPowerBuilder.append("\n\t[A] FIRE");
@@ -480,6 +559,7 @@ public class PlayingLogic {
 		commandBuilder.append("\n# A. Attack");
 		commandBuilder.append("\n# B. Drink Health Potion");
 		commandBuilder.append("\n# C. Use Special Power!!");
+		commandBuilder.append("\n# D. Run Away!!");
 		System.out.println(commandBuilder.toString());
 	}
 }
