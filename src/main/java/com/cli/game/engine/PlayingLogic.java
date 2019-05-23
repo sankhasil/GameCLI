@@ -14,7 +14,6 @@ import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
@@ -38,7 +37,6 @@ import com.cli.game.model.base.Potion;
 import com.cli.game.model.base.SpecialPower;
 import com.cli.game.model.base.Weapon;
 import com.cli.game.model.extended.Hero;
-import com.cli.game.model.extended.Soldier;
 import com.cli.game.model.extended.Zombie;
 
 /**
