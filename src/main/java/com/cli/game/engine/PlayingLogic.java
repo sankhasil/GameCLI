@@ -46,6 +46,7 @@ import com.cli.game.model.extended.Zombie;
 public class PlayingLogic {
 	private final Scanner scan;
 	private final boolean godMode;
+	private static boolean gameChoice = true;
 	private Random random = new Random();
 	private Path saveFolderPath = Paths.get(GameConstants.GAME_SAVE_FOLDER_LOCATION);
 
@@ -66,10 +67,6 @@ public class PlayingLogic {
 						System.out.println("!!!!Thank you for Playing!!!!!");
 						running = false;
 						System.exit(0);
-						break;
-					case "status":
-						System.out.println("\t# Player Status :");
-						// TODO: Player status
 						break;
 					case "1":
 						if (Files.exists(Paths.get(GameConstants.SAVE_FILE_LOCATION))) {
@@ -105,7 +102,7 @@ public class PlayingLogic {
 							}
 						}
 						StorySimulator.getInstance().gameCommands();
-						boolean gameChoice = true;
+						gameChoice = true;
 						while (gameChoice) {
 							try {
 								processCommand();
@@ -114,8 +111,19 @@ public class PlayingLogic {
 								System.out.println(se.getMessage());
 							}
 						}
+						if(!gameChoice) {
+							clearScreen();
+							renderWelcomeMessage();
+						}
 						break;
 					case "2":
+						
+						System.out.println("Whats comming on Game of Bones");
+						System.out.println("\t# Different type of enemies.");
+						System.out.println("\t# You can control an Army of Soldiers.");
+						System.out.println("\t# You can buy/sell your Inventory Items. ");
+						System.out.println("\t# More CLI Graphics.");
+						
 						System.out.println("The greatness is in Making. Please choose 1 to for now.");
 						break;
 					case "beastmodeon":
@@ -129,6 +137,9 @@ public class PlayingLogic {
 						if (beastModeRunning)
 							FightingGame.exitGame();
 						break;
+					default:
+						System.out.println("Choice not Supported!!!");
+						break;
 
 					}
 				}
@@ -139,6 +150,11 @@ public class PlayingLogic {
 				scan.close();
 			}
 		}
+	}
+
+	private void clearScreen() {
+		System.out.println("\033[H\033[2J");
+		System.out.flush();
 	}
 
 	private void processCommand() throws GameCommandNotSupportedException, SaveGameNotWorkingException {
@@ -305,16 +321,16 @@ public class PlayingLogic {
 				StorySimulator.getInstance().setInBattle(false);
 				StorySimulator.getInstance().setCurrentEnemy(null);
 				StorySimulator.getInstance().gameCommands();
-			}else {
+			} else {
 				System.out.println("You can't Run away from enemy.. You are not in Battle");
-		}
+			}
 			break;
 		case "3":
 			// saveLogic
 			if (StorySimulator.getInstance().getCurrentEnemy() != null) {
 				System.out.println("You are in Battle ... You can");
-			}else {
-			saveGame();
+			} else {
+				saveGame();
 			}
 			break;
 		case "4":
@@ -322,8 +338,9 @@ public class PlayingLogic {
 				System.out.println("You can't Exit now...Enemy is infront of you..");
 				renderPlayerActions();
 			} else {
-				System.out.println("!!!!Thank you for Playing!!!!!");
-				System.exit(0);
+				System.out.println("!!!!Thank you for Playing Solo Adventure!!!!!");
+				this.gameChoice = false;
+//				System.exit(0);
 			}
 			break;
 		default:

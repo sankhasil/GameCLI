@@ -37,4 +37,10 @@ public class Weapon implements Serializable {
 		return type;
 	}
 
+	@Override
+	public String toString() {
+		return "Weapon [hitDamage=" + hitDamage + ", type=" + type + "]";
+	}
+	
+
 }
